@@ -1,4 +1,3 @@
-/* Auto-deployment test - timestamp: 2025-10-02 */
 :root { --primary:#ff9900; --ink:#1a1a1a; --bg:#fff7e6; --muted:#6b7280; --blush-orange:#ffb366; }
 * { box-sizing: border-box; }
 body { margin:0; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color:var(--ink); background:var(--bg); position: relative; overflow-x: hidden; font-weight:400; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
