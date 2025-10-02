@@ -40,25 +40,10 @@ app.use(session({
   cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
 }));
 
-// Admin authentication middleware
+// Admin authentication middleware (disabled - no password required)
 const requireAdminAuth = (req, res, next) => {
-  if (req.session.isAdminAuthenticated) {
-    return next();
-  }
-  
-  // Check if it's an API request
-  if (req.path.startsWith('/api/') && req.path !== '/api/admin/login') {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-  
-  // For regular admin requests, redirect to login page
-  if (req.path.startsWith('/admin') && req.path !== '/admin/login' && req.path !== '/admin/authenticate') {
-    return res.redirect('/admin/login');
-  }
-  
-  // If we reach here, user is not authenticated and it's not an admin route
-  // This should not happen with proper route setup
-  return res.status(401).send('Authentication required');
+  // Always allow access - no authentication required
+  return next();
 };
 
 // Configure multer for file uploads
@@ -328,68 +313,20 @@ app.post('/events/:id/register', (req, res) => {
   res.render('pages/event-register', { site, event, submitted: true });
 });
 
-// Admin Authentication Routes
+// Admin Authentication Routes (no password required)
 app.get('/admin/login', (req, res) => {
-  if (req.session.isAdminAuthenticated) {
-    return res.redirect('/admin');
-  }
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Admin Login - ${site.title}</title>
-      <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-        input[type="password"] { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
-        button { background: #007bff; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; width: 100%; }
-        button:hover { background: #0056b3; }
-        .error { color: #dc3545; margin-top: 0.5rem; }
-        .logo { text-align: center; margin-bottom: 2rem; }
-        h1 { color: #333; margin: 0; }
-      </style>
-    </head>
-    <body>
-      <div class="login-container">
-        <div class="logo">
-          <h1>Admin Portal</h1>
-          <p>BitJR Academy & Space</p>
-        </div>
-        <form action="/admin/authenticate" method="POST">
-          <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-          </div>
-          <button type="submit">Login</button>
-          ${req.query.error ? '<div class="error">Invalid password. Please try again.</div>' : ''}
-        </form>
-      </div>
-    </body>
-    </html>
-  `);
+  // Redirect directly to admin panel - no login required
+  res.redirect('/admin');
 });
 
 app.post('/admin/authenticate', (req, res) => {
-  const { password } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-  
-  if (password === adminPassword) {
-    req.session.isAdminAuthenticated = true;
-    res.redirect('/admin');
-  } else {
-    res.redirect('/admin/login?error=1');
-  }
+  // No authentication required - redirect to admin panel
+  res.redirect('/admin');
 });
 
 app.get('/admin/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Error destroying session:', err);
-    }
-    res.redirect('/admin/login');
-  });
+  // No logout needed since there's no authentication - redirect to admin
+  res.redirect('/admin');
 });
 
 // Admin Portal Routes
