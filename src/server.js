@@ -288,15 +288,19 @@ app.post('/events/:id/register', (req, res) => {
 
 // Admin Portal Routes
 app.get('/admin', (req, res) => {
-  res.render('admin/index', { site });
+  // If accessed via admin subdomain, make sure all admin assets work correctly
+  const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
+  res.render('admin/index', { site, isAdminSubdomain });
 });
 
 app.get('/admin/blogs', (req, res) => {
-  res.render('admin/blogs', { site });
+  const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
+  res.render('admin/blogs', { site, isAdminSubdomain });
 });
 
 app.get('/admin/events', (req, res) => {
-  res.render('admin/events', { site });
+  const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
+  res.render('admin/events', { site, isAdminSubdomain });
 });
 
 // API Routes for Admin
@@ -683,8 +687,11 @@ app.use((err, req, res, next) => {
 setInterval(checkScheduledPosts, 60000);
 
 app.listen(PORT, () => {
-  console.log(`BitJR website running on http://localhost:${PORT}`);
-  console.log('Scheduled post checker is running...');
+  console.log('\n🚀 BitJR Academy & Space Server Started!');
+  console.log(`🌐 Main Website: http://localhost:${PORT}`);
+  console.log(`⚙️ Admin Portal: http://localhost:${PORT}/admin`);
+  console.log(`📅 Scheduled post checker is running...`);
+  console.log('───────────────────────────────────────');
 });
 
 
