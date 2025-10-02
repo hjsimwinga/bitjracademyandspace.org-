@@ -7,7 +7,7 @@ body { overflow-x: hidden; }
 
 /* Home page background image - using URL path detection */
 body:has(.hero) {
-  background: var(--bg) url('/images/background/page-bg.jpg');
+  background: var(--bg) url('/static/images/background/page-bg.JPG');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -298,7 +298,7 @@ body:has(.hero) h2 {
 .btn:hover{ transform:translateY(-3px) scale(1.05); box-shadow:6px 6px 0 #00000040, 0 4px 16px rgba(0,0,0,0.2); }
 .btn:hover::before{ left:100%; }
 .btn:active{ transform:translateY(0); }
-.btn-primary{ background:var(--primary); color:#111; background-image:url('/images/buttons/primary-bg.jpg'); background-size:cover; background-position:center; }
+.btn-primary{ background:var(--primary); color:#111; }
 .btn-white{ background:#fff; color:#111; border-color:#111; }
 .hero{ 
   display:grid; 
@@ -312,8 +312,7 @@ body:has(.hero) h2 {
   position: relative;
   overflow: hidden;
   min-height: 400px;
-  background: linear-gradient(135deg, rgba(255, 153, 0, 0.8), rgba(255, 102, 0, 0.8)),
-              url('/images/hero/hero-bg.jpg');
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.8), rgba(255, 102, 0, 0.8));
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
