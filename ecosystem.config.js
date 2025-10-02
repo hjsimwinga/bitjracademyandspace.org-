@@ -1,5 +1,5 @@
 // PM2 Configuration for BitJR Academy
-module.exports = {
+export default {
   apps: [{
     name: 'bitjr-academy',
     script: './src/server.js',
