@@ -119,8 +119,16 @@ const site = {
   tagline: 'Bitcoin education for kids (6–17) and a circular sats economy',
 };
 
-// Routes
+// Routes - Root route with admin subdomain detection
 app.get('/', (req, res) => {
+  const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
+  
+  // If on admin subdomain, serve admin panel directly
+  if (isAdminSubdomain) {
+    return res.render('admin/index', { site, isAdminSubdomain: true });
+  }
+  
+  // Otherwise serve the regular homepage
   const posts = readJson('posts.json', {});
   const events = readJson('events.json', []);
   res.render('pages/home', { site, posts: Object.values(posts).slice(0, 3), events: events.slice(0, 4), isHomePage: true });
@@ -292,6 +300,8 @@ app.get('/admin', (req, res) => {
   const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
   res.render('admin/index', { site, isAdminSubdomain });
 });
+
+// Root route already defined above - removed duplicate
 
 app.get('/admin/blogs', (req, res) => {
   const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
