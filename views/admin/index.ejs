@@ -172,6 +172,17 @@
                 <h3>Partner Management</h3>
                 <p>Manage partner organizations, update partner information, and maintain partnership details.</p>
             </a>
+            
+            <div class="admin-card" style="cursor: default;">
+                <div class="admin-icon">🔄</div>
+                <h3>Cache Management</h3>
+                <p>Clear cache to ensure the latest version is displayed on the site.</p>
+                <div style="margin-top: 20px; display: flex; gap: 10px; flex-direction: column;">
+                    <button onclick="clearCache()" class="btn btn-primary" style="width: 100%; padding: 12px;">Clear Cache</button>
+                    <button onclick="restartServer()" class="btn" style="width: 100%; padding: 12px; background: #333; color: white; border-color: #333;">Restart Server</button>
+                </div>
+                <div id="cache-message" style="margin-top: 10px; font-weight: bold;"></div>
+            </div>
         </div>
         
         <div style="text-align: center;">
@@ -192,6 +203,80 @@
             .catch(error => {
                 console.error('Error loading stats:', error);
             });
+            
+        // Cache management functions
+        function clearCache() {
+            const messageEl = document.getElementById('cache-message');
+            messageEl.textContent = 'Clearing cache...';
+            messageEl.style.color = '#666';
+            
+            fetch('/api/admin/clear-cache', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageEl.textContent = '✅ Cache cleared successfully!';
+                    messageEl.style.color = 'green';
+                    
+                    // Clear message after 3 seconds
+                    setTimeout(() => {
+                        messageEl.textContent = '';
+                    }, 3000);
+                } else {
+                    messageEl.textContent = '❌ Error clearing cache';
+                    messageEl.style.color = 'red';
+                }
+            })
+            .catch(error => {
+                console.error('Error clearing cache:', error);
+                messageEl.textContent = '❌ Error clearing cache';
+                messageEl.style.color = 'red';
+            });
+        }
+        
+        function restartServer() {
+            if (!confirm('Are you sure you want to restart the server? This will briefly interrupt service.')) {
+                return;
+            }
+            
+            const messageEl = document.getElementById('cache-message');
+            messageEl.textContent = 'Restarting server...';
+            messageEl.style.color = '#666';
+            
+            fetch('/api/admin/restart-server', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageEl.textContent = '✅ Server restart initiated. Page will reload in 5 seconds...';
+                    messageEl.style.color = 'green';
+                    
+                    // Reload page after 5 seconds to allow server to restart
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 5000);
+                } else {
+                    messageEl.textContent = '❌ Error restarting server';
+                    messageEl.style.color = 'red';
+                }
+            })
+            .catch(error => {
+                console.error('Error restarting server:', error);
+                messageEl.textContent = '⏳ Server is restarting... Reloading in 5 seconds...';
+                messageEl.style.color = '#666';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 5000);
+            });
+        }
     </script>
 </body>
 </html>

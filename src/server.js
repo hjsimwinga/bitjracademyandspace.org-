@@ -8,8 +8,11 @@ import multer from 'multer';
 import dotenv from 'dotenv';
 import session from 'express-session';
 
-// Load environment variables
+// Load environment variables (suppress console output)
+const originalLog = console.log;
+console.log = () => {};
 dotenv.config();
+console.log = originalLog;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,9 +27,32 @@ app.set('views', path.join(__dirname, '..', 'views'));
 app.use(expressLayouts);
 app.set('layout', 'partials/layout');
 
-// Static
-app.use('/static', express.static(path.join(__dirname, '..', 'public')));
-app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')));
+// Static files with cache control
+const staticOptions = {
+  maxAge: '1h', // Cache static files for 1 hour instead of 1 year
+  etag: true,
+  lastModified: true,
+  setHeaders: (res, path) => {
+    // CSS and JS can be cached shorter for easier updates
+    if (path.endsWith('.css') || path.endsWith('.js')) {
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour
+    }
+  }
+};
+
+app.use('/static', express.static(path.join(__dirname, '..', 'public'), staticOptions));
+app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images'), staticOptions));
+
+// Cache Control Middleware - Prevent caching of HTML pages
+app.use((req, res, next) => {
+  // Don't cache HTML pages
+  if (!req.path.startsWith('/static') && !req.path.startsWith('/images') && !req.path.startsWith('/api')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
 
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
@@ -132,10 +158,11 @@ const readJson = (file, fallback) => {
   }
 };
 
-// Global site data
+// Global site data with version for cache busting
 const site = {
   title: 'BitJR Academy & Space',
   tagline: 'Bitcoin education for kids (6–17) and a circular sats economy',
+  version: Date.now(), // Cache busting version number
 };
 
 // Routes - Root route with admin subdomain detection
@@ -720,6 +747,31 @@ app.post('/api/upload-content-image', requireAdminAuth, upload.single('contentIm
     imageUrl: imageUrl,
     message: 'Image uploaded successfully'
   });
+});
+
+// Admin Cache Management Routes
+app.post('/api/admin/clear-cache', requireAdminAuth, (req, res) => {
+  // Update version number to bust cache
+  site.version = Date.now();
+  
+  res.json({ 
+    success: true, 
+    message: 'Cache version updated. New version: ' + site.version,
+    version: site.version
+  });
+});
+
+app.post('/api/admin/restart-server', requireAdminAuth, (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Server restart requested. If using PM2, run: pm2 restart bitjr-website' 
+  });
+  
+  // Give response time to send before exiting
+  setTimeout(() => {
+    console.log('Server restart requested via admin panel');
+    process.exit(0);
+  }, 1000);
 });
 
 // Global error handler
