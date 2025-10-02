@@ -5,6 +5,11 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import * as QRCode from 'qrcode';
 import multer from 'multer';
+import dotenv from 'dotenv';
+import session from 'express-session';
+
+// Load environment variables
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +31,35 @@ app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+}));
+
+// Admin authentication middleware
+const requireAdminAuth = (req, res, next) => {
+  if (req.session.isAdminAuthenticated) {
+    return next();
+  }
+  
+  // Check if it's an API request
+  if (req.path.startsWith('/api/') && req.path !== '/api/admin/login') {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  // For regular admin requests, redirect to login page
+  if (req.path.startsWith('/admin') && req.path !== '/admin/login' && req.path !== '/admin/authenticate') {
+    return res.redirect('/admin/login');
+  }
+  
+  // If we reach here, user is not authenticated and it's not an admin route
+  // This should not happen with proper route setup
+  return res.status(401).send('Authentication required');
+};
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -294,8 +328,72 @@ app.post('/events/:id/register', (req, res) => {
   res.render('pages/event-register', { site, event, submitted: true });
 });
 
+// Admin Authentication Routes
+app.get('/admin/login', (req, res) => {
+  if (req.session.isAdminAuthenticated) {
+    return res.redirect('/admin');
+  }
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Admin Login - ${site.title}</title>
+      <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input[type="password"] { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        button { background: #007bff; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; width: 100%; }
+        button:hover { background: #0056b3; }
+        .error { color: #dc3545; margin-top: 0.5rem; }
+        .logo { text-align: center; margin-bottom: 2rem; }
+        h1 { color: #333; margin: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="login-container">
+        <div class="logo">
+          <h1>Admin Portal</h1>
+          <p>BitJR Academy & Space</p>
+        </div>
+        <form action="/admin/authenticate" method="POST">
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <button type="submit">Login</button>
+          ${req.query.error ? '<div class="error">Invalid password. Please try again.</div>' : ''}
+        </form>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+app.post('/admin/authenticate', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  
+  if (password === adminPassword) {
+    req.session.isAdminAuthenticated = true;
+    res.redirect('/admin');
+  } else {
+    res.redirect('/admin/login?error=1');
+  }
+});
+
+app.get('/admin/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+    }
+    res.redirect('/admin/login');
+  });
+});
+
 // Admin Portal Routes
-app.get('/admin', (req, res) => {
+app.get('/admin', requireAdminAuth, (req, res) => {
   // If accessed via admin subdomain, make sure all admin assets work correctly
   const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
   res.render('admin/index', { site, isAdminSubdomain });
@@ -303,18 +401,18 @@ app.get('/admin', (req, res) => {
 
 // Root route already defined above - removed duplicate
 
-app.get('/admin/blogs', (req, res) => {
+app.get('/admin/blogs', requireAdminAuth, (req, res) => {
   const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
   res.render('admin/blogs', { site, isAdminSubdomain });
 });
 
-app.get('/admin/events', (req, res) => {
+app.get('/admin/events', requireAdminAuth, (req, res) => {
   const isAdminSubdomain = req.get('host') && req.get('host').startsWith('admin.');
   res.render('admin/events', { site, isAdminSubdomain });
 });
 
 // API Routes for Admin
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', requireAdminAuth, (req, res) => {
   const posts = readJson('posts.json', {});
   const events = readJson('events.json', []);
   const team = readJson('team.json', []);
@@ -329,19 +427,19 @@ app.get('/api/stats', (req, res) => {
 });
 
 // Blog API Routes
-app.get('/api/blogs', (req, res) => {
+app.get('/api/blogs', requireAdminAuth, (req, res) => {
   const posts = readJson('posts.json', {});
   res.json(posts);
 });
 
-app.get('/api/blogs/:slug', (req, res) => {
+app.get('/api/blogs/:slug', requireAdminAuth, (req, res) => {
   const posts = readJson('posts.json', {});
   const post = posts[req.params.slug];
   if (!post) return res.status(404).json({ error: 'Post not found' });
   res.json(post);
 });
 
-app.post('/api/blogs', upload.any(), (req, res) => {
+app.post('/api/blogs', requireAdminAuth, upload.any(), (req, res) => {
   const posts = readJson('posts.json', {});
   const { title, slug, date, status, excerpt, content, scheduleDate, coverPhotoOrder } = req.body;
   
@@ -398,7 +496,7 @@ app.post('/api/blogs', upload.any(), (req, res) => {
   res.json({ success: true });
 });
 
-app.put('/api/blogs/:slug', upload.any(), (req, res) => {
+app.put('/api/blogs/:slug', requireAdminAuth, upload.any(), (req, res) => {
   const posts = readJson('posts.json', {});
   const { title, slug, date, status, excerpt, content, scheduleDate, existingImages, coverPhotoOrder } = req.body;
   
@@ -491,7 +589,7 @@ app.put('/api/blogs/:slug', upload.any(), (req, res) => {
   res.json({ success: true });
 });
 
-app.delete('/api/blogs/:slug', (req, res) => {
+app.delete('/api/blogs/:slug', requireAdminAuth, (req, res) => {
   const posts = readJson('posts.json', {});
   
   if (!posts[req.params.slug]) {
@@ -507,21 +605,21 @@ app.delete('/api/blogs/:slug', (req, res) => {
 });
 
 // Events API Routes
-app.get('/api/events', (req, res) => {
+app.get('/api/events', requireAdminAuth, (req, res) => {
   console.log('GET /api/events - Loading events...');
   const events = readJson('events.json', []);
   console.log('GET /api/events - Events loaded:', events);
   res.json(events);
 });
 
-app.get('/api/events/:id', (req, res) => {
+app.get('/api/events/:id', requireAdminAuth, (req, res) => {
   const events = readJson('events.json', []);
   const event = events.find(e => e.id === req.params.id);
   if (!event) return res.status(404).json({ error: 'Event not found' });
   res.json(event);
 });
 
-app.post('/api/events', (req, res) => {
+app.post('/api/events', requireAdminAuth, (req, res) => {
   uploadEventFlyer.single('flyer')(req, res, (err) => {
     if (err) {
       console.error('Multer error:', err);
@@ -558,7 +656,7 @@ app.post('/api/events', (req, res) => {
   });
 });
 
-app.put('/api/events/:id', (req, res) => {
+app.put('/api/events/:id', requireAdminAuth, (req, res) => {
   console.log('PUT /api/events/:id - ID:', req.params.id);
   uploadEventFlyer.single('flyer')(req, res, (err) => {
     if (err) {
@@ -624,7 +722,7 @@ app.put('/api/events/:id', (req, res) => {
   });
 });
 
-app.delete('/api/events/:id', (req, res) => {
+app.delete('/api/events/:id', requireAdminAuth, (req, res) => {
   const events = readJson('events.json', []);
   const eventIndex = events.findIndex(e => e.id === req.params.id);
   
@@ -672,7 +770,7 @@ function checkScheduledPosts() {
 }
 
 // Content image upload route
-app.post('/api/upload-content-image', upload.single('contentImage'), (req, res) => {
+app.post('/api/upload-content-image', requireAdminAuth, upload.single('contentImage'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No image file provided' });
   }
