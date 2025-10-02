@@ -8,6 +8,9 @@
     "start": "node src/server.js",
     "dev": "node src/server.js"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "dayjs": "^1.11.13",
     "ejs": "^3.1.10",
