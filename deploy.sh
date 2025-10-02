@@ -34,15 +34,33 @@ cd /var/www/bitjr
 # Set proper ownership
 chown -R www-data:www-data /var/www/bitjr
 
-echo "✅ Basic setup complete!"
-echo "📋 Next steps:"
-echo "1. Upload your application files to /var/www/bitjr"
-echo "2. Run: cd /var/www/bitjr && npm install"
-echo "3. Configure nginx"
-echo "4. Start with PM2"
-echo "5. Set up SSL"
+# After basic setup, configure the application
+echo "📦 Installing application dependencies..."
+cd /var/www/bitjr
+npm install
+
+echo "⚙️  Configuring nginx..."
+cp nginx-site.conf /etc/nginx/sites-available/bitjr
+ln -sf /etc/nginx/sites-available/bitjr /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+
+echo "🔧 Testing nginx configuration..."
+nginx -t
+
+echo "🚀 Starting application with PM2..."
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+
+echo "🔄 Restarting nginx..."
+systemctl restart nginx
+
+echo "✅ Deployment complete!"
+echo "📋 Verification:"
+echo "- PM2 Status: $(pm2 list | grep bitjr-academy)"
+echo "- Nginx Status: $(systemctl is-active nginx)"
+echo "- Website: http://bitjracademyandspace.org"
 echo ""
-echo "Node.js version: $(node --version)"
-echo "NPM version: $(npm --version)"
-echo "PM2 version: $(pm2 --version)"
+echo "🔐 To set up SSL certificate, run:"
+echo "certbot --nginx -d bitjracademyandspace.org -d www.bitjracademyandspace.org"
 
