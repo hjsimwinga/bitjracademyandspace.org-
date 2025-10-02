@@ -16,8 +16,8 @@ const PORT = process.env.PORT || 3000;
 // Views
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
-app.set('layout', 'partials/layout');
 app.use(expressLayouts);
+app.set('layout', 'partials/layout');
 
 // Static
 app.use('/static', express.static(path.join(__dirname, '..', 'public')));
