@@ -1,0 +1,21 @@
+{
+  "name": "bitjr-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-validator": "^7.0.1",
+    "multer": "^2.0.2",
+    "qrcode": "^1.5.4",
+    "uuid": "^9.0.1"
+  }
+}

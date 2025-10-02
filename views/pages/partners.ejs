@@ -1,0 +1,30 @@
+<h1>Our Partners</h1>
+<p>We’re grateful to work with organizations that care about kids, education, and Bitcoin.</p>
+
+<div class="logo-grid">
+  <% if (partners && partners.length) { %>
+    <% partners.forEach(p => { %>
+      <div class="logo-cell">
+        <% if (p.website) { %>
+          <a href="<%= p.website %>" target="_blank" rel="noopener noreferrer" title="Visit <%= p.name %> website">
+            <img src="<%= p.logo %>" alt="<%= p.name %>" title="<%= p.name %>">
+          </a>
+        <% } else { %>
+          <img src="<%= p.logo %>" alt="<%= p.name %>" title="<%= p.name %>">
+        <% } %>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <div class="logo-cell">
+      <img src="/static/logos/sample1.png" alt="Sample Partner" onerror="this.style.opacity=0.2">
+    </div>
+    <div class="logo-cell">
+      <img src="/static/logos/sample2.png" alt="Sample Partner" onerror="this.style.opacity=0.2">
+    </div>
+    <div class="logo-cell">
+      <img src="/static/logos/sample3.png" alt="Sample Partner" onerror="this.style.opacity=0.2">
+    </div>
+  <% } %>
+</div>
+
+

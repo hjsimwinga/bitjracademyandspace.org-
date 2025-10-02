@@ -1,0 +1,33 @@
+<h1>Contact Us</h1>
+<% if (submitted) { %>
+  <p><strong>Thank you!</strong> We received your message and will reply soon.</p>
+<% } %>
+
+<form method="post" class="form">
+  <label>Name<input name="name" required></label>
+  <label>Email<input name="email" type="email" required></label>
+  <label>Message<textarea name="message" rows="5" required></textarea></label>
+  <button class="btn btn-primary" type="submit">Send</button>
+  <p class="muted">We never share your information.</p>
+  <input type="hidden" name="_ts" value="<%= Date.now() %>">
+  <input type="hidden" name="_page" value="contact">
+  <input type="hidden" name="_source" value="website">
+  <input type="hidden" name="_org" value="BitJR">
+  <input type="hidden" name="_kind" value="contact">
+  <input type="hidden" name="_ver" value="1">
+  <input type="hidden" name="_path" value="/contact">
+  <input type="hidden" name="_ua" value="<%= (typeof navigator !== 'undefined' ? navigator.userAgent : '') %>">
+  <input type="hidden" name="_fid" value="">
+  <input type="hidden" name="_rid" value="">
+  <input type="hidden" name="_rid2" value="">
+  <input type="hidden" name="_rid3" value="">
+  <input type="hidden" name="_rid4" value="">
+  <input type="hidden" name="_rid5" value="">
+  <input type="hidden" name="_rid6" value="">
+  <input type="hidden" name="_rid7" value="">
+  <input type="hidden" name="_rid8" value="">
+  <input type="hidden" name="_rid9" value="">
+  <input type="hidden" name="_rid10" value="">
+</form>
+
+

@@ -1,0 +1,118 @@
+<h1>Blog</h1>
+<div class="post-list">
+  <% if (posts && posts.length) { %>
+    <% posts.forEach(p => { %>
+      <article class="post-item">
+        <div class="post-content">
+          <h3><a href="/blog/<%= p.slug %>"><%= p.title %></a></h3>
+          <p class="muted"><%= p.date %></p>
+          <p><%= p.excerpt %></p>
+        </div>
+        <% if (p.images && p.images.length > 0) { %>
+          <div class="post-image">
+            <img src="<%= p.images[0] %>" alt="<%= p.title %>" />
+          </div>
+        <% } %>
+      </article>
+    <% }) %>
+  <% } else { %>
+    <p>Posts coming soon!</p>
+  <% } %>
+</div>
+
+<style>
+.post-list {
+  display: grid;
+  gap: 30px;
+  margin: 30px 0;
+}
+
+.post-item {
+  background: white;
+  border: 3px solid #111;
+  border-radius: 20px;
+  padding: 0;
+  box-shadow: 8px 8px 0 #00000040;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: stretch;
+  min-height: 200px;
+}
+
+.post-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 12px 12px 0 #00000050;
+}
+
+.post-content {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.post-image {
+  width: 300px;
+  height: auto;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.post-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.post-item:hover .post-image img {
+  transform: scale(1.05);
+}
+
+.post-content h3 {
+  margin: 0 0 12px;
+  font-size: 1.5rem;
+}
+
+.post-content h3 a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.post-content h3 a:hover {
+  color: var(--primary);
+}
+
+.muted {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 16px;
+}
+
+.post-content p:last-child {
+  margin: 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .post-item {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .post-image {
+    width: 100%;
+    height: 200px;
+    order: -1;
+  }
+  
+  .post-content {
+    padding: 20px;
+  }
+}
+</style>
+
+

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ev-101",
+    "title": "BJAS Local School's Teachers' Training",
+    "date": "2025-09-25 to 2025-09-26",
+    "location": "Livingstone, Zambia",
+    "summary": "A training for teachers to learn about Bitcoin and how to teach it to their students.",
+    "flyer": "/images/events/flyer-1758668040394-600489171.jpg"
+  },
+  {
+    "id": "ev-102",
+    "title": "4TH Cohort Graduation/Meetup - EDITED TEST",
+    "date": "2025-10-18",
+    "location": "Livingstone, Zambia",
+    "summary": "30 students graduating with their teachers! Bitcoiners and no-coiners celebrating learning and community 🎓✨",
+    "flyer": "/images/events/flyer-1759262235937-955649600.jpg"
+  },
+  {
+    "id": "ev-103",
+    "title": "Next Gen Bitcoin Conference",
+    "date": "2026-12-17 to 2026-12-19",
+    "location": "Livingstone, Zambia",
+    "summary": "A conference for the next generation of little Bitcoiners to learn about Bitcoin and how to build the future.",
+    "flyer": null
+  }
+]

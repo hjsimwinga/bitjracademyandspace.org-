@@ -1,0 +1,8 @@
+[
+  { "name": "Walusungu Nyachikanda", "role": "Founder/Community Leader", "bio": "I love adventure, basketball, dogs, and a big T-bone steak! I enjoy coding, robotics, cooking, creating content, and teaching others. Bitcoin means hope to me, and it makes me really happy!", "photo": "/static/images/team1.jpg" },
+  { "name": "Lukas Mwanza", "role": "Operations Manager", "bio": "I love birdwatching, collecting Zambian music, and enjoying traditional foods like chikanda and ifisashi. I play non-contact sports such as chess and table tennis. Bitcoin means empowerment to me.", "photo": "/static/images/team2.jpg" },
+  { "name": "Cassandra Shonga", "role": "Supply Chain Manager", "bio": "Vibrant", "photo": "/static/images/team3.jpg" },
+  { "name": "Humphrey Simwinga", "role": "Education Manager", "bio": "I love Vibecoding, walking, cats and swimming! I enjoy playing table tennis, chess, badminton and my favorite food is chicken. Bitcoin is the future to me, it is hope!", "photo": "/static/images/team4.jpg" }
+]
+
+

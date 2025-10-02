@@ -1,0 +1,217 @@
+<section class="page-header">
+  <div class="header-background">
+    <img src="/images/about/about-header-bg.JPG" alt="BJAS BIT QUIZ Background" class="header-image">
+    <div class="header-overlay"></div>
+  </div>
+  <div class="header-content">
+    <h1>BJAS BIT QUIZ</h1>
+    <p>🧠 A fun quiz game that tests your knowledge of Bitcoin!</p>
+  </div>
+</section>
+
+<section class="activity-hero">
+  <div class="activity-icon">🧠</div>
+  <h2>Test Your Bitcoin Knowledge</h2>
+  <p>Challenge yourself with our interactive Bitcoin quiz! Test your understanding of Bitcoin concepts, earn points, and compete with friends in this fun and educational game.</p>
+</section>
+
+<section>
+  <h2>Quiz Features</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Multiple Difficulty Levels</h3>
+      <p>Choose from beginner, intermediate, and advanced questions to match your knowledge level.</p>
+    </div>
+    <div class="card">
+      <h3>Real-Time Scoring</h3>
+      <p>Get instant feedback on your answers and track your progress as you learn.</p>
+    </div>
+    <div class="card">
+      <h3>Interactive Learning</h3>
+      <p>Each question includes explanations to help you understand Bitcoin concepts better.</p>
+    </div>
+    <div class="card">
+      <h3>Leaderboards</h3>
+      <p>Compete with other players and see how you rank in the Bitcoin knowledge leaderboard.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Quiz Categories</h2>
+  <div class="quiz-categories">
+    <div class="category">
+      <h3>🔤 Bitcoin Basics</h3>
+      <p>Fundamental concepts about what Bitcoin is and how it works.</p>
+    </div>
+    <div class="category">
+      <h3>🔐 Security & Privacy</h3>
+      <p>Learn about Bitcoin security, wallets, and privacy features.</p>
+    </div>
+    <div class="category">
+      <h3>⚡ Lightning Network</h3>
+      <p>Test your knowledge of Bitcoin's second layer payment system.</p>
+    </div>
+    <div class="category">
+      <h3>🌍 Bitcoin Economics</h3>
+      <p>Understand Bitcoin's economic model and monetary properties.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <h2>Ready to Test Your Knowledge?</h2>
+  <p>Start the BJAS BIT QUIZ and see how much you know about Bitcoin!</p>
+  <div class="cta-buttons">
+    <a href="/quiz" class="btn btn-primary">Start Quiz</a>
+    <a href="/contact" class="btn">Learn More</a>
+  </div>
+</section>
+
+<style>
+.page-header {
+  position: relative;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  overflow: hidden;
+  border-radius: 20px;
+  margin: 20px 0;
+}
+
+.header-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.8), rgba(255, 102, 0, 0.8));
+  z-index: 2;
+}
+
+.header-content {
+  position: relative;
+  z-index: 3;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.header-content h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.header-content p {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.activity-hero {
+  text-align: center;
+  padding: 40px 0;
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.1), rgba(255, 102, 0, 0.1));
+  border-radius: 20px;
+  margin: 30px 0;
+}
+
+.activity-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.quiz-categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.category {
+  background: #fff;
+  border: 3px solid #111;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 6px 6px 0 #00000025;
+}
+
+.category h3 {
+  margin: 0 0 12px;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.category p {
+  margin: 0;
+  color: #666;
+}
+
+.cta-section {
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary), #ff6600);
+  color: white;
+  padding: 40px;
+  border-radius: 20px;
+  margin: 40px 0;
+}
+
+.cta-section h2 {
+  margin: 0 0 16px;
+  color: white;
+}
+
+.cta-section p {
+  margin: 0 0 30px;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-buttons .btn {
+  background: white;
+  color: var(--primary);
+  border-color: white;
+}
+
+.cta-buttons .btn:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+</style>

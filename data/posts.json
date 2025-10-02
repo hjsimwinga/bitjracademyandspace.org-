@@ -1,0 +1,16 @@
+{
+  "this-is-our-community": {
+    "title": "This is  our Community",
+    "slug": "this-is-our-community",
+    "date": "2025-09-27",
+    "status": "published",
+    "excerpt": "This is our Community",
+    "content": "welcome to our community, this is how we live and this is what makes our amazing\r\n\r\nwe know how to bust it down and create memeories",
+    "updatedAt": "2025-09-27T20:19:31.331Z",
+    "createdAt": "2025-09-27T16:31:27.737Z",
+    "images": [
+      "/images/blog/blogImage-1758996589980-647415148.png",
+      "/images/blog/blogImage-1758996589998-572950903.png"
+    ]
+  }
+}

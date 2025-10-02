@@ -1,0 +1,139 @@
+<h1>Donate</h1>
+<p>Your sats help us run free/low-cost programs for kids. Thank you!</p>
+
+<div class="donate-box">
+  <div>
+    <h3>Lightning</h3>
+    <p>Scan the QR with your Lightning wallet or copy the address below.</p>
+    <div class="qr" data-copy-text="<%= typeof lnAddr !== 'undefined' ? lnAddr : 'bitjracademyandspace@blink.sv' %>" title="Click to copy Lightning address" role="button" tabindex="0" aria-label="Click to copy Lightning address">
+      <% if (typeof lnQr !== 'undefined' && lnQr) { %>
+        <img src="<%= lnQr %>" alt="Lightning QR" width="220" height="220" style="display:block;">
+      <% } else { %>
+        <div id="ln-qr" style="width:220px;height:220px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;border:2px dashed #ccc;">QR Code</div>
+      <% } %>
+      <div class="qr-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,153,0,0.1);display:none;align-items:center;justify-content:center;border-radius:12px;font-weight:bold;color:#ff9900;">Click to Copy</div>
+    </div>
+    <div class="copy-row">
+      <code id="ln-address"><%= typeof lnAddr !== 'undefined' ? lnAddr : 'bitjracademyandspace@blink.sv' %></code>
+      <button class="btn" data-copy-target="ln-address">Copy</button>
+    </div>
+  </div>
+  <div>
+    <h3>On-chain</h3>
+    <p>Bitcoin address for on-chain donations.</p>
+    <div class="qr" data-copy-text="<%= typeof btcAddr !== 'undefined' ? btcAddr : 'bc1qcyeekgu7wdnyanm5vtfjxsdwaqnuy36dxth80a' %>" title="Click to copy Bitcoin address" role="button" tabindex="0" aria-label="Click to copy Bitcoin address">
+      <% if (typeof btcQr !== 'undefined' && btcQr) { %>
+        <img src="<%= btcQr %>" alt="On-chain Bitcoin QR" width="220" height="220" style="display:block;">
+      <% } else { %>
+        <div id="onchain-qr" style="width:220px;height:220px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;border:2px dashed #ccc;">QR Code</div>
+      <% } %>
+      <div class="qr-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,153,0,0.1);display:none;align-items:center;justify-content:center;border-radius:12px;font-weight:bold;color:#ff9900;">Click to Copy</div>
+    </div>
+    <div class="copy-row">
+      <code id="onchain-address"><%= typeof btcAddr !== 'undefined' ? btcAddr : 'bc1qcyeekgu7wdnyanm5vtfjxsdwaqnuy36dxth80a' %></code>
+      <button class="btn" data-copy-target="onchain-address">Copy</button>
+    </div>
+  </div>
+</div>
+
+<div class="support-section">
+  <h2>Other Ways to Support</h2>
+  <p>You can also support us through Geyser.fund, a crowdfunding platform for Bitcoin projects:</p>
+  <a href="https://geyser.fund/project/bitjracademyandspace" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+    Support on Geyser.fund
+  </a>
+</div>
+
+<script>
+  (function(){
+    function copy(text, btn){
+      navigator.clipboard.writeText(text).then(function(){
+        if (!btn) return;
+        const prev = btn.textContent; 
+        btn.textContent = 'Copied!';
+        btn.style.background = '#4CAF50';
+        btn.style.color = 'white';
+        setTimeout(function(){ 
+          btn.textContent = prev; 
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 1200);
+      }).catch(function(err){
+        console.error('Copy failed:', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          if (btn) {
+            const prev = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(function(){ btn.textContent = prev; }, 1200);
+          }
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+        }
+        document.body.removeChild(textArea);
+      });
+    }
+
+    function showCopyFeedback(element) {
+      const overlay = element.querySelector('.qr-overlay');
+      if (overlay) {
+        overlay.textContent = 'Copied!';
+        overlay.style.background = 'rgba(76, 175, 80, 0.2)';
+        overlay.style.color = '#4CAF50';
+        setTimeout(function(){
+          overlay.textContent = 'Click to Copy';
+          overlay.style.background = 'rgba(255,153,0,0.1)';
+          overlay.style.color = '#ff9900';
+        }, 1500);
+      }
+    }
+
+    document.querySelectorAll('[data-copy-target]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        const id = btn.getAttribute('data-copy-target');
+        const el = document.getElementById(id);
+        if (!el) return;
+        const text = el.textContent.trim();
+        copy(text, btn);
+      });
+    });
+
+    document.querySelectorAll('.qr[data-copy-text]').forEach(function(box){
+      const value = box.getAttribute('data-copy-text');
+      
+      box.addEventListener('click', function(e){
+        e.preventDefault();
+        copy(value);
+        showCopyFeedback(box);
+      });
+      
+      box.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          copy(value);
+          showCopyFeedback(box);
+        }
+      });
+      
+      // Add visual feedback on mouse down
+      box.addEventListener('mousedown', function(){
+        this.style.transform = 'translateY(0) scale(0.98)';
+      });
+      
+      box.addEventListener('mouseup', function(){
+        this.style.transform = '';
+      });
+      
+      box.addEventListener('mouseleave', function(){
+        this.style.transform = '';
+      });
+    });
+  })();
+  </script>
+
+

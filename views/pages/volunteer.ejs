@@ -1,0 +1,56 @@
+<h1>Volunteer Application</h1>
+<p>Help us teach the next generation! We welcome mentors, coordinators, and helpers.</p>
+
+<% if (!nationality) { %>
+  <div class="nationality-selection">
+    <h2>Please select your nationality:</h2>
+    <div class="nationality-options">
+      <button class="btn btn-primary nationality-btn" data-nationality="foreigner">I am a Foreigner</button>
+      <button class="btn btn-primary nationality-btn" data-nationality="zambian">I am a Zambian Citizen</button>
+    </div>
+  </div>
+<% } else { %>
+  <% if (submitted) { %>
+    <p><strong>Thanks!</strong> We'll be in touch soon.</p>
+  <% } %>
+
+  <form method="post" class="form">
+    <input type="hidden" name="nationality" value="<%= nationality %>">
+  <label>Full Name<input name="name" required></label>
+  <label>Email<input name="email" type="email" required></label>
+  <label>Phone (preferably WhatsApp)<input name="phone" required></label>
+  <label>Why do you want to volunteer?<textarea name="motivation" rows="5" required></textarea></label>
+  <label>Skills / Experience<textarea name="skills" rows="4"></textarea></label>
+  <% if (nationality === 'foreigner') { %>
+    <label>Are you willing to cover all travel expenses from your country to Livingstone, Zambia?<textarea name="travel_costs" rows="3" required></textarea></label>
+    <div class="checkbox-group">
+      <label class="checkbox-label">
+        <input type="radio" name="local_arrangements" value="agent">
+        I would like an agent to help me with packages for local transportation, meals, and accommodation
+      </label>
+      <label class="checkbox-label">
+        <input type="radio" name="local_arrangements" value="self">
+        I can arrange for local transportation, meals and accommodation on my own
+      </label>
+    </div>
+  <% } else { %>
+    <label>What is your location in Zambia?<input name="location" required></label>
+    <label>Do you have reliable transportation to reach our programs?<textarea name="transportation" rows="2" required></textarea></label>
+    <label>Are you available for regular weekly commitments?<textarea name="availability" rows="2" required></textarea></label>
+    <label>If you are not based in Livingstone, are you able to cover your own travel and accommodation costs to participate in our programs?<textarea name="local_travel_costs" rows="3" required></textarea></label>
+  <% } %>
+  <button class="btn btn-primary" type="submit">Submit</button>
+</form>
+<% } %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const nationalityBtns = document.querySelectorAll('.nationality-btn');
+    nationalityBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const nationality = this.getAttribute('data-nationality');
+        window.location.href = `/volunteer?nationality=${nationality}`;
+      });
+    });
+  });
+</script>

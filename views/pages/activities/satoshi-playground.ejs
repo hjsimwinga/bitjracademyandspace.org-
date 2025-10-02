@@ -1,0 +1,168 @@
+<section class="page-header">
+  <div class="header-background">
+    <img src="/images/about/about-header-bg.JPG" alt="Satoshi Playground Background" class="header-image">
+    <div class="header-overlay"></div>
+  </div>
+  <div class="header-content">
+    <h1>Satoshi Playground</h1>
+    <p>🎮 Games that teach saving, spending, and sats-as-stickers! Learn with stories and crafts.</p>
+  </div>
+</section>
+
+<section class="activity-hero">
+  <div class="activity-icon">🎮</div>
+  <h2>Fun-First Financial Learning</h2>
+  <p>Introduce your little ones to money concepts through playful games, creative crafts, and engaging stories that make learning about Bitcoin and financial literacy an adventure!</p>
+</section>
+
+<section>
+  <h2>What We Learn</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3>What is Money?</h3>
+      <p>Through fun activities, children learn the basics of money, why we need it, and how it works in our daily lives.</p>
+    </div>
+    <div class="card">
+      <h3>Digital vs Physical</h3>
+      <p>Kids explore the difference between physical coins and digital money through interactive games and visual aids.</p>
+    </div>
+    <div class="card">
+      <h3>Bitcoin Basics</h3>
+      <p>Simple, age-appropriate introduction to Bitcoin as "digital money" that can be sent anywhere in the world.</p>
+    </div>
+    <div class="card">
+      <h3>Saving & Spending</h3>
+      <p>Learn the importance of saving through fun piggy bank activities and responsible spending games.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <h2>Ready to Start the Adventure?</h2>
+  <p>Join our Satoshi Playground and watch your child discover the exciting world of money and Bitcoin through play!</p>
+  <div class="cta-buttons">
+    <a href="/events" class="btn btn-primary">Find a Class</a>
+    <a href="/contact" class="btn">Ask Questions</a>
+  </div>
+</section>
+
+<style>
+.page-header {
+  position: relative;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  overflow: hidden;
+  border-radius: 20px;
+  margin: 20px 0;
+}
+
+.header-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.8), rgba(255, 102, 0, 0.8));
+  z-index: 2;
+}
+
+.header-content {
+  position: relative;
+  z-index: 3;
+  max-width: 800px;
+  padding: 0 20px;
+}
+
+.header-content h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  margin: 0 0 16px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.header-content p {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.activity-hero {
+  text-align: center;
+  padding: 40px 0;
+  background: linear-gradient(135deg, rgba(255, 153, 0, 0.1), rgba(255, 102, 0, 0.1));
+  border-radius: 20px;
+  margin: 30px 0;
+}
+
+.activity-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.cta-section {
+  text-align: center;
+  background: linear-gradient(135deg, var(--primary), #ff6600);
+  color: white;
+  padding: 40px;
+  border-radius: 20px;
+  margin: 40px 0;
+}
+
+.cta-section h2 {
+  margin: 0 0 16px;
+  color: white;
+}
+
+.cta-section p {
+  margin: 0 0 30px;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-buttons .btn {
+  background: white;
+  color: var(--primary);
+  border-color: white;
+}
+
+.cta-buttons .btn:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+</style>

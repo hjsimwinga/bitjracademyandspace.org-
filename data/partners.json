@@ -1,0 +1,7 @@
+[
+  { "name": "CASWATU", "logo": "/static/logos/caswatu.png", "website": "https://caswatu.org" },
+  { "name": "BVF", "logo": "/static/logos/bvf.png", "website": "https://bitcoinvictoriafalls.com/index.php" },
+  { "name": "BJR CLUB", "logo": "/static/logos/bjr-club.png", "website": "https://www.bitcoin4youth.com/" },
+  { "name": "CBAF", "logo": "/static/logos/cbaf.png", "website": "https://bitcoinekasi.com/cbaf/" },
+  { "name": "MY FIRST BITCOIN", "logo": "/static/logos/my-first-bitcoin.png", "website": "https://myfirstbitcoin.io/" }
+]

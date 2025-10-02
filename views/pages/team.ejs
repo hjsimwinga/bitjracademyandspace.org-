@@ -1,0 +1,17 @@
+<h1>Our Team</h1>
+<div class="team-grid">
+  <% if (team && team.length) { %>
+    <% team.forEach(member => { %>
+      <article class="team-card">
+        <img src="<%= member.photo || '/static/images/avatar.png' %>" alt="<%= member.name %>">
+        <h3><%= member.name %></h3>
+        <p class="muted"><%= member.role %></p>
+        <p><%= member.bio %></p>
+      </article>
+    <% }) %>
+  <% } else { %>
+    <p>Team coming soon!</p>
+  <% } %>
+  </div>
+
+
