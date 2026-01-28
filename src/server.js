@@ -5,12 +5,55 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import * as QRCode from 'qrcode';
 import multer from 'multer';
+import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 3000);
+
+// Email (SMTP)
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = Number(process.env.SMTP_PORT || 587);
+const smtpUser = process.env.SMTP_USER;
+const smtpPass = process.env.SMTP_PASS;
+const mailTo = process.env.MAIL_TO || 'bitjracademyandspace@gmail.com';
+const mailFrom = process.env.MAIL_FROM || 'bitjracademyandspace@gmail.com';
+const smtpSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
+
+const mailer = (smtpHost && smtpUser && smtpPass && mailTo)
+  ? nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      auth: { user: smtpUser, pass: smtpPass }
+    })
+  : null;
+
+const formatFields = (fields) => Object.entries(fields || {})
+  .filter(([, value]) => value !== undefined && value !== null && value !== '')
+  .map(([key, value]) => `${key}: ${value}`)
+  .join('\n');
+
+const sendMailSafe = async ({ subject, text, replyTo, to }) => {
+  if (!mailer || !mailFrom) {
+    console.warn('Email not configured: set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_TO.');
+    return;
+  }
+
+  try {
+    await mailer.sendMail({
+      from: mailFrom,
+      to: to || mailTo,
+      subject,
+      text,
+      replyTo
+    });
+  } catch (error) {
+    console.error('Email send failed:', error);
+  }
+};
 
 
 // Views
@@ -26,35 +69,6 @@ app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '..', 'public', 'images', 'blog');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'), false);
-    }
-  }
-});
 
 // Configure multer for event flyers
 const eventStorage = multer.diskStorage({
@@ -113,6 +127,15 @@ const readJson = (file, fallback) => {
   }
 };
 
+const getFileVersion = (file) => {
+  try {
+    const filePath = path.join(dataDir, file);
+    return fs.statSync(filePath).mtimeMs;
+  } catch (e) {
+    return 0;
+  }
+};
+
 // Global site data
 const site = {
   title: 'BitJR Academy & Space',
@@ -121,9 +144,11 @@ const site = {
 
 // Routes
 app.get('/', (req, res) => {
-  const posts = readJson('posts.json', {});
   const events = readJson('events.json', []);
-  res.render('pages/home', { site, posts: Object.values(posts).slice(0, 3), events: events.slice(0, 4), isHomePage: true });
+  const gallery = readJson('gallery.json', []);
+  const livePoll = readJson('live-poll.json', {});
+  const galleryVersion = getFileVersion('gallery.json');
+  res.render('pages/home', { site, events: events.slice(0, 4), gallery, livePoll, galleryVersion, isHomePage: true });
 });
 
 app.get('/about', (req, res) => {
@@ -175,10 +200,6 @@ app.get('/activities/coming-soon', (req, res) => {
   res.render('pages/activities/coming-soon', { site });
 });
 
-app.get('/activities/satoshi-playground', (req, res) => {
-  res.render('pages/activities/satoshi-playground', { site });
-});
-
 app.get('/activities/bjas-bit-quiz', (req, res) => {
   res.render('pages/activities/bjas-bit-quiz', { site });
 });
@@ -197,33 +218,44 @@ app.get('/partners', (req, res) => {
   res.render('pages/partners', { site, partners });
 });
 
-// Blog
-app.get('/blog', (req, res) => {
-  const posts = readJson('posts.json', {});
-  // Show all posts (published and those without status field)
-  const list = Object.values(posts)
-    .filter(post => !post.status || post.status === 'published')
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  res.render('pages/blog', { site, posts: list });
-});
-
-app.get('/blog/:slug', (req, res) => {
-  const posts = readJson('posts.json', {});
-  const post = posts[req.params.slug];
-  if (!post || (post.status && post.status !== 'published')) return res.status(404).render('pages/404', { site });
-  res.render('pages/blog-detail', { site, post });
-});
-
 // Contact
 app.get('/contact', (req, res) => {
   res.render('pages/contact', { site, submitted: false });
 });
 
-app.post('/contact', (req, res) => {
+app.post('/contact', async (req, res) => {
   const submissionsPath = path.join(dataDir, 'submissions.json');
   const data = readJson('submissions.json', []);
-  data.push({ ...req.body, createdAt: new Date().toISOString() });
+  const createdAt = new Date().toISOString();
+  data.push({ ...req.body, createdAt });
   fs.writeFileSync(submissionsPath, JSON.stringify(data, null, 2));
+  await sendMailSafe({
+    subject: `New contact message from ${req.body.name || 'Website visitor'}`,
+    replyTo: req.body.email,
+    text: formatFields({
+      name: req.body.name,
+      email: req.body.email,
+      message: req.body.message,
+      createdAt
+    })
+  });
+  if (req.body.email) {
+    await sendMailSafe({
+      to: req.body.email,
+      subject: 'We received your message',
+      text: [
+        'Thanks for reaching out to BitJR Academy & Space.',
+        'We received your message and will reply soon.',
+        '',
+        formatFields({
+          name: req.body.name,
+          email: req.body.email,
+          message: req.body.message,
+          createdAt
+        })
+      ].join('\n')
+    });
+  }
   res.render('pages/contact', { site, submitted: true });
 });
 
@@ -233,11 +265,49 @@ app.get('/volunteer', (req, res) => {
   res.render('pages/volunteer', { site, submitted: false, nationality });
 });
 
-app.post('/volunteer', (req, res) => {
+app.post('/volunteer', async (req, res) => {
   const volunteersPath = path.join(dataDir, 'volunteers.json');
   const data = readJson('volunteers.json', []);
-  data.push({ ...req.body, createdAt: new Date().toISOString() });
+  const createdAt = new Date().toISOString();
+  data.push({ ...req.body, createdAt });
   fs.writeFileSync(volunteersPath, JSON.stringify(data, null, 2));
+  await sendMailSafe({
+    subject: `New volunteer application: ${req.body.name || 'Unknown'}`,
+    replyTo: req.body.email,
+    text: formatFields({
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      nationality: req.body.nationality,
+      motivation: req.body.motivation,
+      skills: req.body.skills,
+      travel_costs: req.body.travel_costs,
+      local_arrangements: req.body.local_arrangements,
+      location: req.body.location,
+      transportation: req.body.transportation,
+      availability: req.body.availability,
+      local_travel_costs: req.body.local_travel_costs,
+      createdAt
+    })
+  });
+  if (req.body.email) {
+    await sendMailSafe({
+      to: req.body.email,
+      subject: 'We received your volunteer application',
+      text: [
+        'Thanks for applying to volunteer with BitJR Academy & Space.',
+        'We received your application and will be in touch soon.',
+        '',
+        formatFields({
+          name: req.body.name,
+          email: req.body.email,
+          phone: req.body.phone,
+          nationality: req.body.nationality,
+          createdAt
+        })
+      ].join('\n')
+    });
+  }
   res.render('pages/volunteer', { site, submitted: true, nationality: req.body.nationality });
 });
 
@@ -275,221 +345,89 @@ app.get('/events/:id/register', (req, res) => {
   res.render('pages/event-register', { site, event, submitted: false });
 });
 
-app.post('/events/:id/register', (req, res) => {
+app.post('/events/:id/register', async (req, res) => {
   const registrationsPath = path.join(dataDir, 'registrations.json');
   const events = readJson('events.json', []);
   const event = events.find(e => e.id === req.params.id);
   if (!event) return res.status(404).render('pages/404', { site });
   const registrations = readJson('registrations.json', []);
-  registrations.push({ eventId: req.params.id, ...req.body, createdAt: new Date().toISOString() });
+  const createdAt = new Date().toISOString();
+  registrations.push({ eventId: req.params.id, ...req.body, createdAt });
   fs.writeFileSync(registrationsPath, JSON.stringify(registrations, null, 2));
+  await sendMailSafe({
+    subject: `New event registration: ${event.title}`,
+    replyTo: req.body.email,
+    text: formatFields({
+      event: event.title,
+      date: event.date,
+      location: event.location,
+      participant: req.body.name,
+      age: req.body.age,
+      email: req.body.email,
+      notes: req.body.notes,
+      createdAt
+    })
+  });
+  if (req.body.email) {
+    await sendMailSafe({
+      to: req.body.email,
+      subject: `Registration received: ${event.title}`,
+      text: [
+        'Thanks for registering with BitJR Academy & Space.',
+        'We received your registration details below.',
+        '',
+        formatFields({
+          event: event.title,
+          date: event.date,
+          location: event.location,
+          participant: req.body.name,
+          age: req.body.age,
+          email: req.body.email,
+          notes: req.body.notes,
+          createdAt
+        })
+      ].join('\n')
+    });
+  }
   res.render('pages/event-register', { site, event, submitted: true });
 });
 
 // Admin Portal Routes
 app.get('/admin', (req, res) => {
-  res.render('admin/index', { site });
-});
-
-app.get('/admin/blogs', (req, res) => {
-  res.render('admin/blogs', { site });
+  res.render('admin/index', { site, layout: false });
 });
 
 app.get('/admin/events', (req, res) => {
-  res.render('admin/events', { site });
+  res.render('admin/events', { site, layout: false });
+});
+
+app.get('/admin/team', (req, res) => {
+  res.render('admin/team', { site, layout: false });
+});
+
+app.get('/admin/partners', (req, res) => {
+  res.render('admin/partners', { site, layout: false });
+});
+
+app.get('/admin/gallery', (req, res) => {
+  res.render('admin/gallery', { site, layout: false });
+});
+
+app.get('/admin/polls', (req, res) => {
+  res.render('admin/polls', { site, layout: false });
 });
 
 // API Routes for Admin
 app.get('/api/stats', (req, res) => {
-  const posts = readJson('posts.json', {});
   const events = readJson('events.json', []);
   const team = readJson('team.json', []);
   const partners = readJson('partners.json', []);
   
   res.json({
-    blogs: Object.keys(posts).length,
     events: events.length,
     team: team.length,
     partners: partners.length
   });
-});
-
-// Blog API Routes
-app.get('/api/blogs', (req, res) => {
-  const posts = readJson('posts.json', {});
-  res.json(posts);
-});
-
-app.get('/api/blogs/:slug', (req, res) => {
-  const posts = readJson('posts.json', {});
-  const post = posts[req.params.slug];
-  if (!post) return res.status(404).json({ error: 'Post not found' });
-  res.json(post);
-});
-
-app.post('/api/blogs', upload.any(), (req, res) => {
-  const posts = readJson('posts.json', {});
-  const { title, slug, date, status, excerpt, content, scheduleDate, coverPhotoOrder } = req.body;
-  
-  if (!title || !slug || !date || !excerpt || !content) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-  
-  const postData = { 
-    title, 
-    slug, 
-    date, 
-    status: status || 'published', 
-    excerpt, 
-    content,
-    createdAt: new Date().toISOString()
-  };
-  
-  // Add schedule date if provided
-  if (scheduleDate) {
-    postData.scheduleDate = scheduleDate;
-  }
-  
-  // Add images if uploaded
-  if (req.files && req.files.length > 0) {
-    const imageFiles = req.files.filter(file => file.fieldname === 'blogImage');
-    if (imageFiles.length > 0) {
-      let images = imageFiles.map(file => `/images/blog/${file.filename}`);
-      
-      // Reorder images based on cover photo selection
-      if (coverPhotoOrder) {
-        try {
-          const orderData = JSON.parse(coverPhotoOrder);
-          const coverPhotoIndex = orderData.findIndex(item => item.isCoverPhoto);
-          if (coverPhotoIndex !== -1 && coverPhotoIndex < images.length) {
-            // Move cover photo to first position
-            const coverPhoto = images[coverPhotoIndex];
-            images.splice(coverPhotoIndex, 1);
-            images.unshift(coverPhoto);
-          }
-        } catch (e) {
-          console.log('Error parsing cover photo order:', e);
-        }
-      }
-      
-      postData.images = images;
-    }
-  }
-  
-  posts[slug] = postData;
-  
-  const postsPath = path.join(dataDir, 'posts.json');
-  fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
-  
-  res.json({ success: true });
-});
-
-app.put('/api/blogs/:slug', upload.any(), (req, res) => {
-  const posts = readJson('posts.json', {});
-  const { title, slug, date, status, excerpt, content, scheduleDate, existingImages, coverPhotoOrder } = req.body;
-  
-  if (!title || !slug || !date || !excerpt || !content) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-  
-  // If slug changed, remove old entry
-  if (req.params.slug !== slug && posts[req.params.slug]) {
-    delete posts[req.params.slug];
-  }
-  
-  const postData = { 
-    title, 
-    slug, 
-    date, 
-    status: status || 'published', 
-    excerpt, 
-    content,
-    updatedAt: new Date().toISOString()
-  };
-  
-  // Preserve creation date
-  if (posts[req.params.slug] && posts[req.params.slug].createdAt) {
-    postData.createdAt = posts[req.params.slug].createdAt;
-  }
-  
-  // Add schedule date if provided
-  if (scheduleDate) {
-    postData.scheduleDate = scheduleDate;
-  }
-  
-  // Handle images
-  let images = [];
-  
-  // Add existing images if provided
-  if (existingImages) {
-    try {
-      const existing = JSON.parse(existingImages);
-      images = Array.isArray(existing) ? existing : [];
-    } catch (e) {
-      // If parsing fails, check if it's a comma-separated string
-      if (typeof existingImages === 'string' && existingImages.includes(',')) {
-        images = existingImages.split(',').map(img => img.trim()).filter(img => img.length > 0);
-      } else {
-        images = [existingImages];
-      }
-    }
-  }
-  
-  // Add new images if uploaded
-  if (req.files && req.files.length > 0) {
-    const imageFiles = req.files.filter(file => file.fieldname === 'blogImage');
-    if (imageFiles.length > 0) {
-      const newImages = imageFiles.map(file => `/images/blog/${file.filename}`);
-      images = [...images, ...newImages];
-    }
-  }
-  
-  // Reorder images based on cover photo selection
-  if (coverPhotoOrder) {
-    try {
-      const orderData = JSON.parse(coverPhotoOrder);
-      const coverPhotoIndex = orderData.findIndex(item => item.isCoverPhoto);
-      if (coverPhotoIndex !== -1 && coverPhotoIndex < images.length) {
-        // Move cover photo to first position
-        const coverPhoto = images[coverPhotoIndex];
-        images.splice(coverPhotoIndex, 1);
-        images.unshift(coverPhoto);
-      }
-    } catch (e) {
-      console.log('Error parsing cover photo order:', e);
-    }
-  }
-  
-  // If no existing images and no new images, keep old ones
-  if (images.length === 0 && posts[req.params.slug] && posts[req.params.slug].images) {
-    images = posts[req.params.slug].images;
-  }
-  
-  if (images.length > 0) {
-    postData.images = images;
-  }
-  
-  posts[slug] = postData;
-  
-  const postsPath = path.join(dataDir, 'posts.json');
-  fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
-  
-  res.json({ success: true });
-});
-
-app.delete('/api/blogs/:slug', (req, res) => {
-  const posts = readJson('posts.json', {});
-  
-  if (!posts[req.params.slug]) {
-    return res.status(404).json({ error: 'Post not found' });
-  }
-  
-  delete posts[req.params.slug];
-  
-  const postsPath = path.join(dataDir, 'posts.json');
-  fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
-  
-  res.json({ success: true });
 });
 
 // Events API Routes
@@ -505,6 +443,70 @@ app.get('/api/events/:id', (req, res) => {
   const event = events.find(e => e.id === req.params.id);
   if (!event) return res.status(404).json({ error: 'Event not found' });
   res.json(event);
+});
+
+// Team API Routes
+app.get('/api/team', (req, res) => {
+  const team = readJson('team.json', []);
+  const withIds = team.map((member, index) => ({ id: String(index), ...member }));
+  res.json(withIds);
+});
+
+app.get('/api/team/:id', (req, res) => {
+  const team = readJson('team.json', []);
+  const index = Number(req.params.id);
+  if (Number.isNaN(index) || index < 0 || index >= team.length) {
+    return res.status(404).json({ error: 'Team member not found' });
+  }
+  res.json({ id: String(index), ...team[index] });
+});
+
+app.post('/api/team', (req, res) => {
+  try {
+    const { name, role, twitter, photo, bio } = req.body;
+    if (!name || !role || !photo) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const team = readJson('team.json', []);
+    team.push({ name, role, twitter, photo, bio });
+    const teamPath = path.join(dataDir, 'team.json');
+    fs.writeFileSync(teamPath, JSON.stringify(team, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+app.put('/api/team/:id', (req, res) => {
+  try {
+    const team = readJson('team.json', []);
+    const index = Number(req.params.id);
+    if (Number.isNaN(index) || index < 0 || index >= team.length) {
+      return res.status(404).json({ error: 'Team member not found' });
+    }
+    const { name, role, twitter, photo, bio } = req.body;
+    if (!name || !role || !photo) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    team[index] = { name, role, twitter, photo, bio };
+    const teamPath = path.join(dataDir, 'team.json');
+    fs.writeFileSync(teamPath, JSON.stringify(team, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+app.delete('/api/team/:id', (req, res) => {
+  const team = readJson('team.json', []);
+  const index = Number(req.params.id);
+  if (Number.isNaN(index) || index < 0 || index >= team.length) {
+    return res.status(404).json({ error: 'Team member not found' });
+  }
+  team.splice(index, 1);
+  const teamPath = path.join(dataDir, 'team.json');
+  fs.writeFileSync(teamPath, JSON.stringify(team, null, 2));
+  res.json({ success: true });
 });
 
 app.post('/api/events', (req, res) => {
@@ -626,51 +628,158 @@ app.delete('/api/events/:id', (req, res) => {
   res.json({ success: true });
 });
 
+// Partners API Routes
+app.get('/api/partners', (req, res) => {
+  const partners = readJson('partners.json', []);
+  const withIds = partners.map((partner, index) => ({ id: String(index), ...partner }));
+  res.json(withIds);
+});
+
+app.get('/api/partners/:id', (req, res) => {
+  const partners = readJson('partners.json', []);
+  const index = Number(req.params.id);
+  if (Number.isNaN(index) || index < 0 || index >= partners.length) {
+    return res.status(404).json({ error: 'Partner not found' });
+  }
+  res.json({ id: String(index), ...partners[index] });
+});
+
+app.post('/api/partners', (req, res) => {
+  try {
+    const { name, logo, website } = req.body;
+    if (!name || !logo || !website) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const partners = readJson('partners.json', []);
+    partners.push({ name, logo, website });
+    const partnersPath = path.join(dataDir, 'partners.json');
+    fs.writeFileSync(partnersPath, JSON.stringify(partners, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+app.put('/api/partners/:id', (req, res) => {
+  try {
+    const partners = readJson('partners.json', []);
+    const index = Number(req.params.id);
+    if (Number.isNaN(index) || index < 0 || index >= partners.length) {
+      return res.status(404).json({ error: 'Partner not found' });
+    }
+    const { name, logo, website } = req.body;
+    if (!name || !logo || !website) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    partners[index] = { name, logo, website };
+    const partnersPath = path.join(dataDir, 'partners.json');
+    fs.writeFileSync(partnersPath, JSON.stringify(partners, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+app.delete('/api/partners/:id', (req, res) => {
+  const partners = readJson('partners.json', []);
+  const index = Number(req.params.id);
+  if (Number.isNaN(index) || index < 0 || index >= partners.length) {
+    return res.status(404).json({ error: 'Partner not found' });
+  }
+  partners.splice(index, 1);
+  const partnersPath = path.join(dataDir, 'partners.json');
+  fs.writeFileSync(partnersPath, JSON.stringify(partners, null, 2));
+  res.json({ success: true });
+});
+
+// Gallery API Routes
+app.get('/api/gallery', (req, res) => {
+  const gallery = readJson('gallery.json', []);
+  const withIds = gallery.map((item, index) => ({ id: String(index), ...item }));
+  res.json(withIds);
+});
+
+app.get('/api/gallery/:id', (req, res) => {
+  const gallery = readJson('gallery.json', []);
+  const index = Number(req.params.id);
+  if (Number.isNaN(index) || index < 0 || index >= gallery.length) {
+    return res.status(404).json({ error: 'Gallery item not found' });
+  }
+  res.json({ id: String(index), ...gallery[index] });
+});
+
+app.post('/api/gallery', (req, res) => {
+  try {
+    const { src, alt } = req.body;
+    if (!src) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const gallery = readJson('gallery.json', []);
+    gallery.push({ src, alt });
+    const galleryPath = path.join(dataDir, 'gallery.json');
+    fs.writeFileSync(galleryPath, JSON.stringify(gallery, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+app.put('/api/gallery/:id', (req, res) => {
+  try {
+    const gallery = readJson('gallery.json', []);
+    const index = Number(req.params.id);
+    if (Number.isNaN(index) || index < 0 || index >= gallery.length) {
+      return res.status(404).json({ error: 'Gallery item not found' });
+    }
+    const { src, alt } = req.body;
+    if (!src) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    gallery[index] = { src, alt };
+    const galleryPath = path.join(dataDir, 'gallery.json');
+    fs.writeFileSync(galleryPath, JSON.stringify(gallery, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+app.delete('/api/gallery/:id', (req, res) => {
+  const gallery = readJson('gallery.json', []);
+  const index = Number(req.params.id);
+  if (Number.isNaN(index) || index < 0 || index >= gallery.length) {
+    return res.status(404).json({ error: 'Gallery item not found' });
+  }
+  gallery.splice(index, 1);
+  const galleryPath = path.join(dataDir, 'gallery.json');
+  fs.writeFileSync(galleryPath, JSON.stringify(gallery, null, 2));
+  res.json({ success: true });
+});
+
+// Live Poll API Routes
+app.get('/api/live-poll', (req, res) => {
+  const livePoll = readJson('live-poll.json', {});
+  res.json(livePoll);
+});
+
+app.put('/api/live-poll', (req, res) => {
+  try {
+    const { members, founded, satsAwarded, meetups } = req.body || {};
+    if (!members || !founded || !satsAwarded || !meetups) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    const livePoll = { members, founded, satsAwarded, meetups };
+    const livePollPath = path.join(dataDir, 'live-poll.json');
+    fs.writeFileSync(livePollPath, JSON.stringify(livePoll, null, 2));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
 // 404
 app.use((req, res) => {
   res.status(404).render('pages/404', { site });
-});
-
-// Scheduled post checker
-function checkScheduledPosts() {
-  const posts = readJson('posts.json', {});
-  const now = new Date();
-  let hasChanges = false;
-  
-  Object.keys(posts).forEach(slug => {
-    const post = posts[slug];
-    if (post.status === 'scheduled' && post.scheduleDate) {
-      const scheduleDate = new Date(post.scheduleDate);
-      if (scheduleDate <= now) {
-        posts[slug].status = 'published';
-        posts[slug].date = scheduleDate.toISOString().split('T')[0];
-        posts[slug].scheduledAt = new Date().toISOString();
-        hasChanges = true;
-        console.log(`Scheduled post "${post.title}" has been published.`);
-      }
-    }
-  });
-  
-  if (hasChanges) {
-    const postsPath = path.join(dataDir, 'posts.json');
-    fs.writeFileSync(postsPath, JSON.stringify(posts, null, 2));
-  }
-}
-
-// Content image upload route
-app.post('/api/upload-content-image', upload.single('contentImage'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No image file provided' });
-  }
-  
-  // Resize image to small size (optional - you can add image processing here)
-  const imageUrl = `/images/blog/${req.file.filename}`;
-  
-  res.json({ 
-    success: true, 
-    imageUrl: imageUrl,
-    message: 'Image uploaded successfully'
-  });
 });
 
 // Global error handler
@@ -679,12 +788,22 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error: ' + err.message });
 });
 
-// Check for scheduled posts every minute
-setInterval(checkScheduledPosts, 60000);
+const startServer = (port, attemptsLeft = 5) => {
+  const server = app.listen(port, () => {
+    console.log(`BitJR website running on http://localhost:${port}`);
+  });
 
-app.listen(PORT, () => {
-  console.log(`BitJR website running on http://localhost:${PORT}`);
-  console.log('Scheduled post checker is running...');
-});
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+      console.warn(`Port ${port} is in use, trying ${port + 1}...`);
+      startServer(port + 1, attemptsLeft - 1);
+      return;
+    }
+
+    console.error('Server failed to start:', err);
+  });
+};
+
+startServer(PORT);
 
 

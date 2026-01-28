@@ -7,7 +7,8 @@
   
   <div class="hero-text">
     <h1>Learn Bitcoin. Build the Future.</h1>
-    <p>For kids aged 6–17: money literacy, Bitcoin basics, coding with sats, and a playful circular economy where you can spend your sats!</p>
+    <p>Livingstone, Zambia.</p>
+    <p>Bitcoin education for kids ages 6–17 and a safe circular economy where they earn, spend, and save sats.</p>
     <div class="hero-ctas">
       <a href="/activities" class="btn btn-white">Explore Activities</a>
       <a href="/events" class="btn">See Events</a>
@@ -18,7 +19,35 @@
   </div>
 </section>
 
-<section>
+<section class="impact-section">
+  <div class="impact-header">
+    <div class="impact-pill">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      Live impact polls
+    </div>
+  </div>
+  <div class="impact-grid">
+    <% const poll = livePoll || {}; %>
+    <div class="impact-card">
+      <div class="impact-number count" data-count="<%= poll.members?.value ?? 100 %>" data-suffix="<%= poll.members?.suffix || '' %>">0</div>
+      <div class="impact-label"><%= poll.members?.label || 'Members' %></div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-number count" data-count="<%= poll.founded?.value ?? 2024 %>" data-format="<%= poll.founded?.format || 'plain' %>">0</div>
+      <div class="impact-label"><%= poll.founded?.label || 'Founded in' %></div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-number count" data-count="<%= poll.satsAwarded?.value ?? 200000 %>" data-suffix="<%= poll.satsAwarded?.suffix || '+' %>">0</div>
+      <div class="impact-label"><%= poll.satsAwarded?.label || 'Sats awarded' %></div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-number count" data-count="<%= poll.meetups?.value ?? 5 %>" data-suffix="<%= poll.meetups?.suffix || '' %>">0</div>
+      <div class="impact-label"><%= poll.meetups?.label || 'Meetups' %></div>
+    </div>
+  </div>
+</section>
+
+<section class="events-section">
   <h2>Upcoming Events</h2>
   <div class="card-grid">
     <% if (events && events.length) { %>
@@ -36,18 +65,57 @@
   </div>
 </section>
 
-<section>
-  <h2>From the Blog</h2>
-  <div class="card-grid">
-    <% if (posts && posts.length) { %>
-      <% posts.forEach(p => { %>
-        <article class="card">
-          <h3><a href="/blog/<%= p.slug %>"><%= p.title %></a></h3>
-          <p><%= p.excerpt %></p>
-        </article>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const counters = document.querySelectorAll('.impact-number[data-count]');
+    if (!counters.length) return;
+
+    const formatter = new Intl.NumberFormat();
+    const animateCount = (el) => {
+      const target = Number(el.dataset.count);
+      const suffix = el.dataset.suffix || '';
+      const usePlain = el.dataset.format === 'plain';
+      const duration = 1200;
+      let start = null;
+
+      const step = (timestamp) => {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        const value = Math.floor(progress * target);
+        const formatted = usePlain ? String(value) : formatter.format(value);
+        el.textContent = `${formatted}${suffix}`;
+        if (progress < 1) requestAnimationFrame(step);
+      };
+
+      requestAnimationFrame(step);
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          animateCount(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.4 });
+
+    counters.forEach((el) => {
+      el.textContent = '0';
+      observer.observe(el);
+    });
+  });
+</script>
+<section class="gallery-section">
+  <h2>📸 BJAS PoW</h2>
+  <p>Moments from our wide range of activities</p>
+  <div class="gallery-grid">
+    <% const encodePath = (src) => src.split('/').map((part, index) => (index === 0 ? part : encodeURIComponent(part))).join('/'); %>
+    <% if (gallery && gallery.length) { %>
+      <% gallery.forEach(item => { %>
+        <div class="gallery-item">
+          <img src="<%= encodePath(item.src) %>?v=<%= galleryVersion %>" alt="<%= item.alt || 'BitJR Academy Activity' %>" loading="lazy" decoding="async" onerror="this.closest('.gallery-item')?.remove()">
+        </div>
       <% }) %>
-    <% } else { %>
-      <p>Coming soon!</p>
     <% } %>
   </div>
 </section>

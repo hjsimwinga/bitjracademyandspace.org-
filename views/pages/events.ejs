@@ -1,5 +1,5 @@
 <h1>Events</h1>
-<p>🌟 Dive into Bitcoin adventures! From teacher training to student graduations, join our exciting workshops, community meetups, and hands-on learning experiences that make Bitcoin fun for everyone aged 6-17.</p>
+<p>Dive into Bitcoin adventures! Join our exciting classes, community meetups, and practical learning experiences.</p>
 
 <section>
   <h2>Upcoming</h2>
@@ -16,7 +16,11 @@
           <div class="flyer-overlay">
             <div class="flyer-image">
               <% if (e.flyer) { %>
-                <img src="<%= e.flyer %>" alt="<%= e.title %> Flyer">
+                <img src="<%= e.flyer %>" alt="<%= e.title %> Flyer" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="flyer-placeholder" style="display: none;">
+                  <div class="flyer-icon">📄</div>
+                  <p>Flyer Coming Soon!</p>
+                </div>
               <% } else { %>
                 <div class="flyer-placeholder">
                   <div class="flyer-icon">📄</div>

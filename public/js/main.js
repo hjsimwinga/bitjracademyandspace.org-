@@ -46,6 +46,28 @@ setInterval(checkForUpdates, REFRESH_INTERVAL);
 
 // Page transition animations and interactive effects
 document.addEventListener('DOMContentLoaded', () => {
+  // Highlight active nav link
+  const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+  document.querySelectorAll('.nav a[href]').forEach((link) => {
+    const href = link.getAttribute('href');
+    if (!href) return;
+    const normalized = href.replace(/\/$/, '') || '/';
+    if (normalized === currentPath) {
+      link.classList.add('active');
+    }
+  });
+
+  // Shrink header on scroll
+  const handleHeaderResize = () => {
+    if (window.scrollY > 30) {
+      document.body.classList.add('header-compact');
+    } else {
+      document.body.classList.remove('header-compact');
+    }
+  };
+  handleHeaderResize();
+  window.addEventListener('scroll', handleHeaderResize, { passive: true });
+
   // Initialize slideshow on home page
   initSlideshow();
   // Create page transition overlay

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Poll Management - Admin Portal</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .admin-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), #ff6600);
+            color: white;
+            border-radius: 16px;
+        }
+        
+        .admin-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .panel {
+            background: white;
+            border: 3px solid #111;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 8px 8px 0 #00000040;
+        }
+        
+        .form-grid {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 160px 120px;
+            gap: 12px;
+        }
+        
+        .form-row label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-row input,
+        .form-row select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border: 2px solid #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a href="/admin" class="back-link">← Back to Admin Portal</a>
+        
+        <div class="admin-header">
+            <h1>📊 Live Poll Management</h1>
+            <span>Update homepage live poll numbers</span>
+        </div>
+        
+        <div class="panel">
+            <form id="poll-form" class="form-grid">
+                <div class="form-row">
+                    <label>Members</label>
+                    <input type="number" id="members-value" min="0" step="1" required>
+                    <input type="text" id="members-suffix" placeholder="suffix">
+                </div>
+                <div class="form-row">
+                    <label>Founded in</label>
+                    <input type="number" id="founded-value" min="0" step="1" required>
+                    <select id="founded-format">
+                        <option value="plain">Plain</option>
+                        <option value="number">Number</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Sats awarded</label>
+                    <input type="number" id="sats-value" min="0" step="1" required>
+                    <input type="text" id="sats-suffix" placeholder="suffix">
+                </div>
+                <div class="form-row">
+                    <label>Meetups</label>
+                    <input type="number" id="meetups-value" min="0" step="1" required>
+                    <input type="text" id="meetups-suffix" placeholder="suffix">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const loadPoll = () => {
+            fetch('/api/live-poll?t=' + Date.now())
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('members-value').value = data.members?.value ?? 100;
+                    document.getElementById('members-suffix').value = data.members?.suffix || '';
+                    document.getElementById('founded-value').value = data.founded?.value ?? 2024;
+                    document.getElementById('founded-format').value = data.founded?.format || 'plain';
+                    document.getElementById('sats-value').value = data.satsAwarded?.value ?? 200000;
+                    document.getElementById('sats-suffix').value = data.satsAwarded?.suffix || '+';
+                    document.getElementById('meetups-value').value = data.meetups?.value ?? 5;
+                    document.getElementById('meetups-suffix').value = data.meetups?.suffix || '';
+                })
+                .catch(error => {
+                    console.error('Error loading live poll:', error);
+                });
+        };
+        
+        document.getElementById('poll-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                members: {
+                    value: Number(document.getElementById('members-value').value),
+                    label: 'Members',
+                    suffix: document.getElementById('members-suffix').value.trim()
+                },
+                founded: {
+                    value: Number(document.getElementById('founded-value').value),
+                    label: 'Founded in',
+                    format: document.getElementById('founded-format').value
+                },
+                satsAwarded: {
+                    value: Number(document.getElementById('sats-value').value),
+                    label: 'Sats awarded',
+                    suffix: document.getElementById('sats-suffix').value.trim()
+                },
+                meetups: {
+                    value: Number(document.getElementById('meetups-value').value),
+                    label: 'Meetups',
+                    suffix: document.getElementById('meetups-suffix').value.trim()
+                }
+            };
+            
+            fetch('/api/live-poll', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Live poll updated.');
+                } else {
+                    alert('Error saving: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error saving live poll:', error);
+                alert('Error saving: ' + error.message);
+            });
+        });
+        
+        document.addEventListener('DOMContentLoaded', loadPoll);
+    </script>
+</body>
+</html>

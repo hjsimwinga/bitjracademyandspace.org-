@@ -131,10 +131,6 @@
         
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number" id="blog-count">-</div>
-                <div class="stat-label">Blog Posts</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-number" id="event-count">-</div>
                 <div class="stat-label">Events</div>
             </div>
@@ -149,12 +145,6 @@
         </div>
         
         <div class="admin-grid">
-            <a href="/admin/blogs" class="admin-card">
-                <div class="admin-icon">📝</div>
-                <h3>Blog Management</h3>
-                <p>Create, edit, and manage blog posts. Add new content, update existing posts, and organize your blog content.</p>
-            </a>
-            
             <a href="/admin/events" class="admin-card">
                 <div class="admin-icon">📅</div>
                 <h3>Event Management</h3>
@@ -172,6 +162,18 @@
                 <h3>Partner Management</h3>
                 <p>Manage partner organizations, update partner information, and maintain partnership details.</p>
             </a>
+
+            <a href="/admin/gallery" class="admin-card">
+                <div class="admin-icon">🖼️</div>
+                <h3>Gallery Management</h3>
+                <p>Add and update gallery images shown on the home page.</p>
+            </a>
+
+            <a href="/admin/polls" class="admin-card">
+                <div class="admin-icon">📊</div>
+                <h3>Live Poll Management</h3>
+                <p>Edit the live poll numbers shown on the home page.</p>
+            </a>
         </div>
         
         <div style="text-align: center;">
@@ -184,7 +186,6 @@
         fetch('/api/stats')
             .then(response => response.json())
             .then(data => {
-                document.getElementById('blog-count').textContent = data.blogs || 0;
                 document.getElementById('event-count').textContent = data.events || 0;
                 document.getElementById('team-count').textContent = data.team || 0;
                 document.getElementById('partner-count').textContent = data.partners || 0;

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <clipPath id="logo-clip">
+      <circle cx="128" cy="128" r="96"/>
+    </clipPath>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="#ffffff" stroke="#ff8a00" stroke-width="12"/>
+  <image href="/static/logos/bitjr-logo.png" x="48" y="48" width="160" height="160" clip-path="url(#logo-clip)" preserveAspectRatio="xMidYMid meet"/>
+</svg>

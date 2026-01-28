@@ -1,0 +1,6 @@
+{
+  "members": { "value": 100, "label": "Members" },
+  "founded": { "value": 2024, "label": "Founded in", "format": "plain" },
+  "satsAwarded": { "value": 200000, "label": "Sats awarded", "suffix": "+" },
+  "meetups": { "value": 5, "label": "Meetups" }
+}
