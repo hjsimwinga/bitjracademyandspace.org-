@@ -314,7 +314,7 @@ app.post('/volunteer', async (req, res) => {
 // Donations
 app.get('/donate', (req, res) => {
   const lnAddr = 'bitjracademyandspace@blink.sv';
-  const btcAddr = 'bc1qcyeekgu7wdnyanm5vtfjxsdwaqnuy36dxth80a';
+  const btcAddr = 'bc1q3396amagqsxg5zx495slxm0adula3yp7c3nryp';
   const lnPayload = `lightning:${lnAddr}`;
   const btcPayload = `bitcoin:${btcAddr}`;
   Promise.all([

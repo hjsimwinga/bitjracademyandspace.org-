@@ -21,7 +21,7 @@
   <div>
     <h3>On-chain</h3>
     <p>Bitcoin address for on-chain donations.</p>
-    <div class="qr" data-copy-text="<%= typeof btcAddr !== 'undefined' ? btcAddr : 'bc1qcyeekgu7wdnyanm5vtfjxsdwaqnuy36dxth80a' %>" title="Click to copy Bitcoin address" role="button" tabindex="0" aria-label="Click to copy Bitcoin address">
+    <div class="qr" data-copy-text="<%= typeof btcAddr !== 'undefined' ? btcAddr : 'bc1q3396amagqsxg5zx495slxm0adula3yp7c3nryp' %>" title="Click to copy Bitcoin address" role="button" tabindex="0" aria-label="Click to copy Bitcoin address">
       <% if (typeof btcQr !== 'undefined' && btcQr) { %>
         <img src="<%= btcQr %>" alt="On-chain Bitcoin QR" width="220" height="220" style="display:block;">
       <% } else { %>
@@ -30,7 +30,7 @@
       <div class="qr-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,153,0,0.1);display:none;align-items:center;justify-content:center;border-radius:12px;font-weight:bold;color:#ff9900;">Click to Copy</div>
     </div>
     <div class="copy-row">
-      <code id="onchain-address"><%= typeof btcAddr !== 'undefined' ? btcAddr : 'bc1qcyeekgu7wdnyanm5vtfjxsdwaqnuy36dxth80a' %></code>
+      <code id="onchain-address"><%= typeof btcAddr !== 'undefined' ? btcAddr : 'bc1q3396amagqsxg5zx495slxm0adula3yp7c3nryp' %></code>
       <button class="btn" data-copy-target="onchain-address">Copy</button>
     </div>
   </div>
