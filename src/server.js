@@ -127,6 +127,19 @@ const readJson = (file, fallback) => {
   }
 };
 
+const getPosts = () => {
+  const raw = readJson('posts.json', {});
+  const posts = Object.values(raw || {}).filter(post => {
+    if (!post) return false;
+    return post.status ? post.status === 'published' : true;
+  });
+  return posts.sort((a, b) => {
+    const aDate = new Date(a.updatedAt || a.date || 0).getTime();
+    const bDate = new Date(b.updatedAt || b.date || 0).getTime();
+    return bDate - aDate;
+  });
+};
+
 const getFileVersion = (file) => {
   try {
     const filePath = path.join(dataDir, file);
