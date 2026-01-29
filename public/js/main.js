@@ -46,6 +46,23 @@ setInterval(checkForUpdates, REFRESH_INTERVAL);
 
 // Page transition animations and interactive effects
 document.addEventListener('DOMContentLoaded', () => {
+  // Mobile menu toggle
+  const navToggle = document.querySelector('.nav-toggle');
+  const navMenu = document.querySelector('.mobile-nav');
+  if (navToggle && navMenu) {
+    const closeMenu = () => {
+      document.body.classList.remove('nav-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    };
+    navToggle.addEventListener('click', () => {
+      const isOpen = document.body.classList.toggle('nav-open');
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    navMenu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', closeMenu);
+    });
+  }
+
   // Highlight active nav link
   const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
   document.querySelectorAll('.nav a[href]').forEach((link) => {
